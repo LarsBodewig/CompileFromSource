@@ -1,0 +1,46 @@
+buildscript {
+    group = "$groupId"
+}
+
+plugins {
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    gradlePluginPortal()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_19
+    withJavadocJar()
+    withSourcesJar()
+}
+
+gradlePlugin {
+    plugins {
+        compileFromSource {
+            id = 'dev.bodewig.compileFromSource'
+            tags.set(['dependencies', 'configuration', 'build', 'java'])
+            implementationClass = 'dev.bodewig.compilefromsource.gradle.plugin.CompileFromSourcePlugin'
+        }
+    }
+}
+
+publishing.publications.withType(MavenPublication) { pub ->
+    pom.withXml {
+        def pom = asNode()
+        def parent = pom.appendNode('parent')
+        parent.appendNode('groupId', "$groupId")
+        parent.appendNode('artifactId', 'cfs-parent')
+        parent.appendNode('version', "$version")
+        pom.remove(pom.get('groupId'))
+        pom.remove(pom.get('version'))
+        pom.appendNode('name', 'CompileFromSource Gradle Plugin')
+        pom.appendNode('description', 'Add configuration to compile dependencies from source')
+    }
+}
+
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'

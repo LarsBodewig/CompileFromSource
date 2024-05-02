@@ -1,0 +1,9 @@
+pluginManagement {
+	rootProject.name = "$artifactId"
+
+	repositories {
+		mavenLocal()
+		mavenCentral()
+		gradlePluginPortal()
+	}
+}
