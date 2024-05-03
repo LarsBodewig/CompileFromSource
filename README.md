@@ -8,14 +8,14 @@ TODO
 
 ```groovy
 plugins {
-	id 'dev.bodewig.compileFromSource' version '1.0.0'
+	id 'dev.bodewig.compilefromsource' version '1.0.0'
 }
 dependencies {
 	compileFromSource 'my.dependency:1.0.0'
 }
 ```
 
-If you use the `dev.bodewig.compileFromSource` plugin, the Gradle Java plugin is applied automatically.
+If you use the `dev.bodewig.compilefromsource` plugin, the Gradle Java plugin is applied automatically.
 
 ---
 

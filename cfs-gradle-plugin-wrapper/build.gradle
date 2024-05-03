@@ -21,8 +21,8 @@ java {
 
 gradlePlugin {
     plugins {
-        compileFromSource {
-            id = 'dev.bodewig.compileFromSource'
+        compilefromsource {
+            id = 'dev.bodewig.compilefromsource'
             tags.set(['dependencies', 'configuration', 'build', 'java'])
             implementationClass = 'dev.bodewig.compilefromsource.gradle.plugin.CompileFromSourcePlugin'
         }
@@ -33,7 +33,7 @@ publishing.publications.withType(MavenPublication) { pub ->
     pom.withXml {
         def pom = asNode()
         def parent = pom.appendNode('parent')
-        parent.appendNode('groupId', "$groupId")
+        parent.appendNode('groupId', "$group")
         parent.appendNode('artifactId', 'cfs-parent')
         parent.appendNode('version', "$version")
         pom.remove(pom.get('groupId'))
