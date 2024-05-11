@@ -22,7 +22,7 @@ Since I couldn't get the Gradle `signing` plugin to generate the GPG armored asc
 To invoke Gradle without Maven, the following project properties have to be supplied on the command line:
 
 * groupId=dev.bodewig.compilefromsource
-* artifactId=cfs-gradle-test
+* artifactId=cfs-gradle-plugin
 * version=1.0.0
 
 See the project `README` for the plugin usage.

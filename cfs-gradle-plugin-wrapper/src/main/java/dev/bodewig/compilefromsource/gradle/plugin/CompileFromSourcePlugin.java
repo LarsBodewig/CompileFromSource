@@ -7,6 +7,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -46,6 +47,16 @@ public abstract class CompileFromSourcePlugin implements Plugin<Project> {
 	public static final String TASK_NAME = "pullSources";
 
 	/**
+	 * The name of the source dir
+	 */
+	public static final String SOURCE_DIR_NAME = "cfs-java";
+
+	/**
+	 * The name of the resource dir
+	 */
+	public static final String RESOURCE_DIR_NAME = "cfs-res";
+	
+	/**
 	 * Default constructor
 	 */
 	public CompileFromSourcePlugin() {
@@ -68,6 +79,21 @@ public abstract class CompileFromSourcePlugin implements Plugin<Project> {
 							});
 						}
 					});
+					logger.error("RS: " + drs.getTarget().getGroup() + ":" + drs.getTarget().getName() + ":" + drs.getTarget().getVersion());
+				});
+				rs.dependencySubstitution(ds -> {
+					ds.all(des -> {
+						des.artifactSelection(asd -> {
+							if (asd.getRequestedSelectors().isEmpty()) {
+								asd.selectArtifact(ArtifactTypeDefinition.JAR_TYPE, null, SOURCES_CLASSIFIER);
+							} else {
+								asd.getRequestedSelectors().forEach(das -> {
+									asd.selectArtifact(das.getType(), das.getExtension(), SOURCES_CLASSIFIER);
+								});
+							}
+						});
+						logger.error("DS: " + des.getRequested().getDisplayName());
+					});
 				});
 			});
 			c.setVisible(false); // dependencies should not be inherited by other projects
@@ -75,20 +101,34 @@ public abstract class CompileFromSourcePlugin implements Plugin<Project> {
 
 		// add additional source set
 		SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
-		SourceSet pulled = sourceSets.create(SOURCE_SET_NAME);
-		SourceDirectorySet pulledDirs = pulled.getAllSource();
+		SourceSet pulled = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME); //sourceSets.create(SOURCE_SET_NAME);
 
 		// add task to copy sources
 		Task pullSources = project.getTasks().create(TASK_NAME);
 		pullSources.doLast(t -> {
 			// resolve dependencies
-			ResolvedConfiguration resolved = config.getResolvedConfiguration();
-			LenientConfiguration lenient = resolved.getLenientConfiguration();
-			logger.info("Resolved " + lenient.getArtifacts().size() + " artifacts:");
-			lenient.getArtifacts().forEach(ra -> {
-				logger.info("\t" + ra.getName() + " -> " + ra.getFile().getName());
+			Directory sources = project.getLayout().getBuildDirectory().dir(SOURCE_DIR_NAME).get();
+			Directory resources = project.getLayout().getBuildDirectory().dir(RESOURCE_DIR_NAME).get();
+			config.resolve().forEach(f -> {
+				logger.error("file: " + f.getName());
+				project.copy(cs -> {
+					cs.from(project.zipTree(f));
+					cs.into(sources.dir(f.getName()));
+				});
+			});
+			pulled.getJava().srcDir(sources);
+			/*resolved.getResolvedArtifacts().forEach(ra -> {
+				logger.error("Resolved: " + ra.getName() + " -> " + ra.getFile().getName());
 				// add to source set
-				pulledDirs.srcDir(project.file(ra.getFile()));
+				//pulledDirs.srcDir(project.file(ra.getFile()));
+			});
+			logger.error("First level:");
+			resolved.getFirstLevelModuleDependencies().forEach(rd -> {
+				rd.getModuleArtifacts().forEach(ra -> {
+					logger.error("\t" + ra.getName() + " -> " + ra.getFile().getName());
+					// add to source set
+					pulledDirs.srcDir(project.file(ra.getFile()));
+				});
 			});
 			if (!lenient.getUnresolvedModuleDependencies().isEmpty()) {
 				logger.error("Could not resolve " + lenient.getUnresolvedModuleDependencies().size() + " dependencies");
@@ -97,6 +137,7 @@ public abstract class CompileFromSourcePlugin implements Plugin<Project> {
 				});
 			}
 			resolved.rethrowFailure(); // outside of if in case of other failures
+			*/
 		});
 
 		// run task before compilation
@@ -104,7 +145,5 @@ public abstract class CompileFromSourcePlugin implements Plugin<Project> {
 		compileJava.configureEach(t -> {
 			t.dependsOn(pullSources);
 		});
-
-		// TODO: one output for each dependency?
 	}
 }
