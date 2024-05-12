@@ -2,7 +2,9 @@
 
 # CompileFromSource
 
-TODO
+CompileFromSource is a gradle plugin intended to provide one functionality of the [Apache Maven Dependency Plugin](https://maven.apache.org/plugins/maven-dependency-plugin/index.html) by resolving the specified and transitive dependencies, downloading the source artifacts and adding them to the Java source set in order to compile them as part of your own project.
+
+This is useful to compile a custom variant using a special configuration (e.g. for older or newer Java versions) or apply custom post-processing (e.g. your own annotation processor or compiler plugin). The `compileFromSource` configuration can be used with Gradles exclusion mechanism to limit unwanted dependency chains - in that case the excluded dependencies need to be added to the `implementation` or `api` configuration to compile successfully.
 
 ## Gradle plugin usage (groovy)
 
