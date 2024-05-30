@@ -10,7 +10,7 @@ This is useful to compile a custom variant using a special configuration (e.g. f
 
 ```groovy
 plugins {
-	id 'dev.bodewig.compilefromsource' version '1.0.0'
+	id 'dev.bodewig.compilefromsource' version '1.1.0'
 }
 dependencies {
 	compileFromSource 'my.dependency:1.0.0'
