@@ -11,4 +11,9 @@ class CompileFromSourceTest {
 	void testCompiles() {
 		System.out.println(FreeType.class);
 	}
+
+	@Test
+	void hasResources() {
+		assertNotNull(ClassLoader.getSystemClassLoader().getResource("library.properties"));
+	}
 }

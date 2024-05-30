@@ -1,5 +1,9 @@
 package dev.bodewig.compilefromsource.gradle.plugin;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -36,12 +40,22 @@ public abstract class CompileFromSourcePlugin implements Plugin<Project> {
 	/**
 	 * The name of the registered task
 	 */
-	public static final String TASK_NAME = "pullSources";
+	public static final String TASK_NAME_PULL = "pullSources";
+
+	/**
+	 * The name of the pulled dir
+	 */
+	public static final String PULLED_DIR_NAME = "pulled";
 
 	/**
 	 * The name of the source dir
 	 */
-	public static final String SOURCE_DIR_NAME = "pulled";
+	public static final String SOURCE_DIR_NAME = "pulledSources";
+
+	/**
+	 * The name of the resource dir
+	 */
+	public static final String RESOURCE_DIR_NAME = "pulledResources";
 
 	/**
 	 * Default constructor
@@ -61,9 +75,11 @@ public abstract class CompileFromSourcePlugin implements Plugin<Project> {
 					ds.all(des -> {
 						des.artifactSelection(asd -> {
 							if (asd.getRequestedSelectors().isEmpty()) {
+								asd.selectArtifact(ArtifactTypeDefinition.JAR_TYPE, null, null);
 								asd.selectArtifact(ArtifactTypeDefinition.JAR_TYPE, null, SOURCES_CLASSIFIER);
 							} else {
 								asd.getRequestedSelectors().forEach(das -> {
+									asd.selectArtifact(das.getType(), das.getExtension(), null);
 									asd.selectArtifact(das.getType(), das.getExtension(), SOURCES_CLASSIFIER);
 								});
 							}
@@ -79,20 +95,38 @@ public abstract class CompileFromSourcePlugin implements Plugin<Project> {
 		// add additional source set
 		SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
 		SourceSet pulled = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+		Directory pulledDir = project.getLayout().getBuildDirectory().dir(PULLED_DIR_NAME).get();
 		Directory sourcesDir = project.getLayout().getBuildDirectory().dir(SOURCE_DIR_NAME).get();
+		Directory resourcesDir = project.getLayout().getBuildDirectory().dir(RESOURCE_DIR_NAME).get();
 
 		// add task to unpack sources
-		Task pullSources = project.getTasks().create(TASK_NAME);
+		Task pullSources = project.getTasks().create(TASK_NAME_PULL);
 		pullSources.doLast(t -> {
 			// resolve dependencies
 			config.resolve().forEach(f -> {
 				logger.warn("Unpacked " + f.getName());
 				project.copy(cs -> {
 					cs.from(project.zipTree(f));
-					cs.into(sourcesDir.dir(f.getName()));
+					cs.into(pulledDir.dir(f.getName()));
 				});
 			});
+			// split sources and resources
+			for (File f : pulledDir.getAsFile().listFiles()) {
+				project.copy(cs -> {
+					cs.from(f);
+					cs.include("**/*.java");
+					cs.into(sourcesDir);
+				});
+				project.copy(cs -> {
+					cs.from(f);
+					cs.exclude("**/*.java");
+					cs.exclude("**/*.class");
+					cs.into(resourcesDir);
+				});
+			}
+			// add to source set
 			pulled.getJava().srcDir(sourcesDir);
+			pulled.getResources().srcDir(resourcesDir);
 		});
 
 		// run task before compilation
