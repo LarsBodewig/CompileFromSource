@@ -19,4 +19,4 @@ To invoke Gradle without Maven, the following project properties have to be supp
 
 * groupId=dev.bodewig.compilefromsource
 * artifactId=cfs-gradle-test
-* version=1.0.0
+* version=1.1.0
