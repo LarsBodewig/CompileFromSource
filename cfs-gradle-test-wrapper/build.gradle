@@ -23,6 +23,8 @@ tasks.named('test', Test) {
 dependencies {
     compileFromSource 'com.badlogicgames.gdx:gdx-freetype:1.12.1'
     compileFromSource 'org.scala-lang:scala-library:2.13.14'
+    compileFromSource 'org.lwjgl.lwjgl:lwjgl-platform:2.9.3:natives-windows'
+    // TODO: add dependency with module versions
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.1'

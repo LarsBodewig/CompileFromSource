@@ -16,4 +16,10 @@ class CompileFromSourceTest {
 	void hasResources() {
 		assertNotNull(ClassLoader.getSystemClassLoader().getResource("library.properties"));
 	}
+	
+
+	@Test
+	void worksWithClassifier() {
+		assertNotNull(ClassLoader.getSystemClassLoader().getResource("lwjgl.dll"));
+	}
 }
